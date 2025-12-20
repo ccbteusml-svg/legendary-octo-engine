@@ -1,0 +1,141 @@
+<meta name='viewport' content='width=device-width, initial-scale=1'/><!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <title>I__Mais</title>
+
+  <link
+    rel="stylesheet"
+    href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"
+  />
+
+  <style>
+    body {
+      margin: 0;
+      font-family: Arial, sans-serif;
+    }
+
+    #topo {
+      padding: 8px;
+      background: #222;
+      color: white;
+      display: flex;
+      gap: 6px;
+    }
+
+    #topo input {
+      flex: 1;
+      padding: 6px;
+      font-size: 14px;
+    }
+
+    #topo button {
+      padding: 6px 10px;
+      font-size: 14px;
+    }
+
+    #map {
+      height: calc(100vh - 44px);
+      width: 100%;
+    }
+  </style>
+</head>
+<body>
+
+<div id="topo">
+  <input id="busca" placeholder="Pesquisar ponto">
+  <button onclick="buscarPonto()">Ir</button>
+</div>
+
+<div id="map"></div>
+
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+<script src="script.js"></script>
+
+</body>
+</html><script>const map = L.map("map").setView([-3.119, -60.021], 13);
+
+L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {
+  attribution: "© OpenStreetMap"
+}).addTo(map);
+
+let pontos = JSON.parse(localStorage.getItem("pontos")) || [];
+let marcadores = [];
+
+// Função para salvar
+function salvar() {
+  localStorage.setItem("pontos", JSON.stringify(pontos));
+}
+
+// Função para redesenhar tudo
+function desenharPontos() {
+  marcadores.forEach(m => map.removeLayer(m));
+  marcadores = [];
+
+  pontos.forEach((p, index) => {
+    const marker = L.marker([p.lat, p.lng]).addTo(map);
+
+    marker.bindTooltip(p.nome, {
+      permanent: true,
+      direction: "top"
+    });
+
+    marker.on("click", () => {
+      const acao = prompt(
+        `Editar ou excluir?\n\n1 - Editar\n2 - Excluir`
+      );
+
+      if (acao === "1") {
+        const novoNome = prompt("Novo nome:", p.nome);
+        if (novoNome) {
+          p.nome = novoNome;
+          salvar();
+          desenharPontos();
+        }
+      }
+
+      if (acao === "2") {
+        if (confirm("Excluir este ponto?")) {
+          pontos.splice(index, 1);
+          salvar();
+          desenharPontos();
+        }
+      }
+    });
+
+    marcadores.push(marker);
+  });
+}
+
+// Clique para adicionar ponto
+map.on("click", e => {
+  const nome = prompt("Nome do local:");
+  if (!nome) return;
+
+  pontos.push({
+    lat: e.latlng.lat,
+    lng: e.latlng.lng,
+    nome
+  });
+
+  salvar();
+  desenharPontos();
+});
+
+// Buscar ponto pelo nome
+function buscarPonto() {
+  const termo = document.getElementById("busca").value.toLowerCase();
+
+  const ponto = pontos.find(p =>
+    p.nome.toLowerCase().includes(termo)
+  );
+
+  if (!ponto) {
+    alert("Ponto não encontrado");
+    return;
+  }
+
+  map.setView([ponto.lat, ponto.lng], 17);
+}
+
+desenharPontos();</script>
