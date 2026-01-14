@@ -1,0 +1,352 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>I__MAIS Respaldo</title>
+    
+    <link rel="manifest" href="manifest.json">
+    <meta name="theme-color" content="#0d47a1">
+    <link rel="icon" type="image/png" href="icon.png">
+    <link rel="apple-touch-icon" href="icon.png">
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <style>
+        /* --- ESTILO GERAL (PROFISSIONAL AZUL) --- */
+        body { 
+            font-family: 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; 
+            background-color: #f4f6f8; 
+            margin: 0; 
+            padding: 0; 
+            padding-bottom: 40px;
+            color: #333;
+        }
+
+        /* CABEÇALHO (APP BAR) */
+        header {
+            background-color: #0d47a1; /* Azul Profundo */
+            color: white;
+            padding: 15px 20px;
+            text-align: center;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.2);
+            position: sticky;
+            top: 0;
+            z-index: 100;
+        }
+        header h2 { margin: 0; font-size: 20px; font-weight: 600; letter-spacing: 0.5px; }
+
+        /* CONTAINER PRINCIPAL */
+        .container { padding: 20px; max-width: 600px; margin: 0 auto; }
+
+        /* PAINEL DE FORMULÁRIO */
+        .painel { 
+            background: white; 
+            padding: 20px; 
+            border-radius: 15px; 
+            box-shadow: 0 4px 15px rgba(0,0,0,0.05); 
+            margin-bottom: 25px;
+        }
+        
+        /* INPUTS */
+        .input-group { margin-bottom: 15px; }
+        label { display: block; margin-bottom: 6px; font-weight: 600; font-size: 13px; color: #555; text-transform: uppercase; }
+        input[type="text"] { 
+            width: 100%; 
+            padding: 14px; 
+            border: 1px solid #e0e0e0; 
+            border-radius: 8px; 
+            box-sizing: border-box; 
+            font-size: 16px;
+            background-color: #f9f9f9;
+            transition: 0.3s;
+        }
+        input[type="text"]:focus {
+            background-color: #fff;
+            border-color: #0d47a1;
+            outline: none;
+        }
+
+        /* INPUT DE ARQUIVO */
+        input[type="file"] { display: none; }
+        .btn-foto { 
+            display: block; 
+            padding: 12px; 
+            background-color: #f0f4f8; 
+            color: #0d47a1; 
+            border-radius: 8px; 
+            text-align: center; 
+            border: 2px dashed #cbd5e1; 
+            font-weight: 600;
+            cursor: pointer;
+        }
+        .btn-foto:active { background-color: #e3e9f0; }
+
+        /* BOTÕES GERAIS */
+        button { 
+            width: 100%; 
+            padding: 16px; 
+            border: none; 
+            border-radius: 30px; /* Botão Pílula */
+            font-size: 16px; 
+            font-weight: 700; 
+            cursor: pointer; 
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            box-shadow: 0 3px 6px rgba(0,0,0,0.1);
+            transition: transform 0.1s;
+        }
+        button:active { transform: scale(0.98); }
+
+        .btn-salvar { background-color: #0d47a1; color: white; } /* Azul Principal */
+        .btn-atualizar { background-color: #ffb300; color: #333; } /* Amarelo Edição */
+        .btn-cancelar { background-color: #efefef; color: #666; margin-top: 10px; box-shadow: none; }
+
+        /* PESQUISA */
+        .search-box input { 
+            border-radius: 30px; 
+            padding-left: 20px; 
+            box-shadow: 0 2px 5px rgba(0,0,0,0.05); 
+            border: none;
+        }
+
+        /* CARD DA LISTA */
+        .card { 
+            background: white; 
+            padding: 20px; 
+            margin-bottom: 15px; 
+            border-radius: 12px; 
+            box-shadow: 0 2px 8px rgba(0,0,0,0.08); 
+            position: relative; 
+            border-left: 5px solid #0d47a1; /* Detalhe azul na lateral */
+        }
+        .card h3 { margin: 0 0 5px 0; font-size: 18px; color: #1a1a1a; }
+        .card p { margin: 0; color: #666; font-size: 15px; }
+        .foto-servico { width: 100%; height: 200px; object-fit: cover; border-radius: 8px; margin-top: 15px; background-color: #eee;}
+        
+        /* BOTÕES DO CARD */
+        .card-actions { display: flex; gap: 10px; margin-top: 15px; }
+        .btn-mini { padding: 10px; font-size: 13px; flex: 1; border-radius: 8px; box-shadow: none; }
+        .btn-edit { background-color: #e3f2fd; color: #0d47a1; } /* Azul bem claro */
+        .btn-del { background-color: #ffebee; color: #c62828; } /* Vermelho bem claro */
+
+    </style>
+</head>
+<body>
+
+    <header>
+        <h2>📡 I__MAIS Respaldo</h2>
+    </header>
+
+    <div class="container">
+        
+        <div class="painel">
+            <h3 id="titulo-form" style="margin-top:0; color:#0d47a1;">Novo Serviço</h3>
+            
+            <div class="input-group">
+                <label>Cliente / ID</label>
+                <input type="text" id="nome" placeholder="Nome ou Contrato">
+            </div>
+            
+            <div class="input-group">
+                <label>Descrição do Serviço</label>
+                <input type="text" id="desc" placeholder="O que foi feito?">
+            </div>
+
+            <div class="input-group">
+                <label>Evidência Fotográfica</label>
+                <label for="foto-input" class="btn-foto">📷 Tirar Foto</label>
+                <input type="file" id="foto-input" accept="image/*">
+                <small id="nome-arquivo" style="display:block; margin-top:8px; color:#888; text-align:center;">Nenhuma foto selecionada</small>
+            </div>
+            
+            <button id="btn-acao" class="btn-salvar" onclick="processarFormulario()">💾 Salvar Serviço</button>
+            <button id="btn-cancelar" class="btn-cancelar" style="display:none;" onclick="cancelarEdicao()">Cancelar</button>
+        </div>
+
+        <div class="search-box">
+            <input type="text" id="busca" placeholder="🔍 Pesquisar serviços..." onkeyup="filtrarLista()">
+        </div>
+        
+        <br>
+        
+        <div id="lista-servicos">Carregando...</div>
+    </div>
+
+    <script>
+        // --- CONEXÃO ---
+        const projectUrl = 'https://efqgcfqpkqkrjejtntrk.supabase.co';
+        const projectKey = 'sb_publishable_Fkjlr7NXmet1F-yD9tpS8A_RoCGKh-u'; // <--- SUA CHAVE "eyJ..." VAI AQUI!
+
+        const _supabase = supabase.createClient(projectUrl, projectKey);
+
+        let listaDados = [];
+        let idEditando = null;
+
+        document.getElementById('foto-input').addEventListener('change', function(){
+            const nome = this.files[0] ? this.files[0].name : "Nenhuma foto selecionada";
+            document.getElementById('nome-arquivo').innerText = nome;
+        });
+
+        async function processarFormulario() {
+            const nome = document.getElementById('nome').value;
+            const desc = document.getElementById('desc').value;
+            const arquivoInput = document.getElementById('foto-input');
+            const arquivo = arquivoInput.files[0];
+
+            if(!nome || !desc) { alert("Preencha os campos obrigatórios!"); return; }
+
+            const btn = document.getElementById('btn-acao');
+            const textoOriginal = btn.innerText;
+            btn.innerText = "Processando...";
+            btn.disabled = true;
+
+            try {
+                let urlDaFoto = null;
+
+                if (arquivo) {
+                    const nomeArquivo = Date.now() + "_" + arquivo.name.replace(/[^a-zA-Z0-9.]/g, "");
+                    const { error } = await _supabase.storage.from('imagens').upload(nomeArquivo, arquivo);
+                    if (error) throw error;
+                    
+                    const { data } = _supabase.storage.from('imagens').getPublicUrl(nomeArquivo);
+                    urlDaFoto = data.publicUrl;
+                }
+
+                if (idEditando === null) {
+                    const { error } = await _supabase.from('servicos').insert([{ cliente_nome: nome, descricao: desc, foto_url: urlDaFoto }]);
+                    if (error) throw error;
+                    alert('✅ Serviço salvo!');
+                } else {
+                    const atualizacao = { cliente_nome: nome, descricao: desc };
+                    if (urlDaFoto) atualizacao.foto_url = urlDaFoto;
+                    const { error } = await _supabase.from('servicos').update(atualizacao).eq('id', idEditando);
+                    if (error) throw error;
+                    alert('✅ Serviço atualizado!');
+                    cancelarEdicao();
+                }
+
+                document.getElementById('nome').value = '';
+                document.getElementById('desc').value = '';
+                document.getElementById('foto-input').value = '';
+                document.getElementById('nome-arquivo').innerText = 'Nenhuma foto selecionada';
+                listarServicos();
+
+            } catch (erro) {
+                alert("Erro: " + erro.message);
+            } finally {
+                btn.innerText = textoOriginal;
+                btn.disabled = false;
+            }
+        }
+
+        async function listarServicos() {
+            const listaDiv = document.getElementById('lista-servicos');
+            listaDiv.innerHTML = '<p style="text-align:center; color:#666">Atualizando lista...</p>';
+
+            const { data, error } = await _supabase
+                .from('servicos')
+                .select('*')
+                .order('id', { ascending: false });
+
+            if (error) {
+                listaDiv.innerHTML = 'Erro de conexão.';
+            } else {
+                listaDados = data;
+                renderizarLista(listaDados);
+            }
+        }
+
+        function renderizarLista(itens) {
+            const listaDiv = document.getElementById('lista-servicos');
+            listaDiv.innerHTML = '';
+
+            if (itens.length === 0) {
+                listaDiv.innerHTML = '<p style="text-align:center; color:#999; margin-top:20px">Nenhum serviço encontrado.</p>';
+                return;
+            }
+
+            itens.forEach(item => {
+                let htmlFoto = '';
+                if(item.foto_url) {
+                    htmlFoto = `<img src="${item.foto_url}" class="foto-servico" alt="Foto">`;
+                }
+
+                const card = `
+                    <div class="card">
+                        <h3>${item.cliente_nome}</h3>
+                        <p>${item.descricao}</p>
+                        ${htmlFoto}
+                        <div class="card-actions">
+                            <button class="btn-mini btn-edit" onclick="prepararEdicao(${item.id})">EDITAR</button>
+                            <button class="btn-mini btn-del" onclick="deletarServico(${item.id})">EXCLUIR</button>
+                        </div>
+                        <small style="color:#bbb; position:absolute; top:20px; right:20px; font-size:12px;">ID: ${item.id}</small>
+                    </div>
+                `;
+                listaDiv.innerHTML += card;
+            });
+        }
+
+        function filtrarLista() {
+            const termo = document.getElementById('busca').value.toLowerCase();
+            const filtrados = listaDados.filter(item => {
+                const nome = item.cliente_nome ? item.cliente_nome.toLowerCase() : "";
+                const desc = item.descricao ? item.descricao.toLowerCase() : "";
+                return nome.includes(termo) || desc.includes(termo);
+            });
+            renderizarLista(filtrados);
+        }
+
+        async function deletarServico(id) {
+            if (confirm("Apagar este serviço permanentemente?")) {
+                const { error } = await _supabase.from('servicos').delete().eq('id', id);
+                if (!error) listarServicos();
+            }
+        }
+
+        function prepararEdicao(id) {
+            const item = listaDados.find(i => i.id === id);
+            if (!item) return;
+
+            document.getElementById('nome').value = item.cliente_nome;
+            document.getElementById('desc').value = item.descricao;
+            idEditando = id;
+            
+            document.getElementById('titulo-form').innerText = "Editando ID #" + id;
+            document.getElementById('titulo-form').style.color = "#ffb300"; // Amarelo no título
+            
+            const btn = document.getElementById('btn-acao');
+            btn.innerText = "Atualizar Serviço";
+            btn.className = "btn-atualizar";
+            
+            document.getElementById('btn-cancelar').style.display = 'block';
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+        }
+
+        function cancelarEdicao() {
+            idEditando = null;
+            document.getElementById('nome').value = '';
+            document.getElementById('desc').value = '';
+            
+            document.getElementById('titulo-form').innerText = "Novo Serviço";
+            document.getElementById('titulo-form').style.color = "#0d47a1"; // Volta pra Azul
+
+            const btn = document.getElementById('btn-acao');
+            btn.innerText = "💾 Salvar Serviço";
+            btn.className = "btn-salvar";
+            
+            document.getElementById('btn-cancelar').style.display = 'none';
+        }
+
+        listarServicos();
+    </script>
+    <script>
+        if ('serviceWorker' in navigator) {
+            window.addEventListener('load', () => {
+                navigator.serviceWorker.register('./sw.js')
+                    .then(reg => console.log('PWA registrado!', reg))
+                    .catch(err => console.log('Erro PWA:', err));
+            });
+        }
+    </script>
+</body>
+</html>
